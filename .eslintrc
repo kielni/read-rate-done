@@ -1,0 +1,19 @@
+{
+  "root": true,
+
+  "extends": "jquery",
+
+  "env": {},
+
+  "globals": {
+    "window": true,
+    "jQuery": true,
+    "define": true,
+    "module": true,
+    "noGlobal": true
+  },
+
+  "rules": {
+    "strict": ["error", "function"]
+  }
+}
