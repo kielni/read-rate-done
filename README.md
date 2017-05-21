@@ -1,6 +1,6 @@
 # Read rated done
 
-Set read date and rate a book on [Goodreads](https://www.goodreads.com) from [Kindle Cloud Reader](https://read.amazon.com).
+[Chrome extension](https://chrome.google.com/webstore/detail/cffdboojhkfgkeicaeckflcbjokpekih) to set read date and rate a book on [Goodreads](https://www.goodreads.com) from [Kindle Cloud Reader](https://read.amazon.com).
 
 I use Goodreads to keep track of books I've read.  I want to record two simple things:
 - approximately when I read a book
