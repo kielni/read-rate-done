@@ -19,8 +19,12 @@
   ],
   "web_accessible_resources": ["stars.css"],
   "page_action": {
-    "default_icon": "icon.png",
+    "default_icon": "icon-gray-16.png",
     "default_title": "Read and rate"
+  },
+  "icons": {
+    "16": "icon-gray-16.png",
+    "128": "icon-gray-128.png"
   },
   "permissions": [
     "tabs"

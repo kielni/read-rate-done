@@ -5,6 +5,10 @@
   background-color: #000;
 }
 
+.kcr2gr.stars {
+  display: none;
+}
+
 .star {
   background-size: 15px;
   height: 15px;
