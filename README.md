@@ -16,7 +16,7 @@ to set a read date.
 
 It's possible from a desktop browser, but involves a search for the book, clicking a dropdown, clicking Read, waiting for a popup, clicking a rating, clicking a button to set the read date to today, and saving.
 
-This extension injects stars into the Kindle Cloud Reader library view.  Clicking a rating opens a new Goodreads tab for the book, rates it, and sets the read date to today.  It relies on Chrome being logged into Goodreads; stars will be hidden if not.
+This extension injects stars below the first 30 books in the Kindle Cloud Reader library view.  Clicking a rating opens a new Goodreads tab for the book, rates it, and sets the read date to today.  It relies on Chrome being logged into Goodreads; stars will be hidden if not.
 
 ## details
 
@@ -25,7 +25,7 @@ This extension injects stars into the Kindle Cloud Reader library view.  Clickin
 The background script passes messages between Kindle Cloud Reader and Goodreads tabs.
 
 Kindle Cloud Reader tab sends messages to the extension:
-  - library iframe ready: get url for My Books on Goodreads (it includes a user id), then fetch ratings from first page of My Books
+  - library iframe ready: get url for My Books on Goodreads (it includes a user id), then fetch ratings from first page of My Books (30 books)
   - rate: open Goodreads tab with query parameters for search query and rating
 
 ### kindle.js

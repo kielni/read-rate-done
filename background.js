@@ -7,9 +7,10 @@
   from Goodreads
     - rating complete: send message to Kindle Cloud Reader
 */
+let tabId = null;
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('onMessage request=', request, ' sender=', sender);
+  console.log('onMessage request=', request, ' sender=', sender, 'tabId=', tabId);
   // opened Kindle Cloud Reader
   if (sender.url.indexOf('read.amazon.com') >= 0 && request.opened) {
     chrome.pageAction.setIcon({ tabId: sender.tab.id, path: 'icon-gray-16.png' });
@@ -31,9 +32,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ action: 'no login', login: false });
     });
   }
-  // finished rating in Goodreads tab
-  if (sender.url.indexOf('www.goodreads.com') >= 0) {
-    sendResponse({ action: 'rated' });
+  // Goodreads search page returns Goodreads id
+  if (sender.url.indexOf('www.goodreads.com') >= 0 && request.url) {
+    kgr.loadReviewTab(request.url, request.rating);
   }
   return true;
 });
@@ -47,12 +48,28 @@ var kgr = (function() {
   };
 
   var openGoodreadsTab = function openGoodreadsTab(q, rating, sendResponse) {
-    var url = `https://www.goodreads.com/search?q=${q}&rating=${rating}`;
-    chrome.tabs.create({url: url, active: false}, (t) => {
+    var url = `https://www.goodreads.com/search?q=${q}&rating=${rating}&readratedone=true`;
+    return chrome.tabs.create({url: url, active: false}, (t) => {
       if (sendResponse) {
         sendResponse({ action: 'open' });
       }
+      tabId = t.id;
     });
+  };
+
+  var loadReviewTab = function loadReviewTab(url, rating, sendResponse) {
+    return chrome.tabs.update(tabId, {url: url, active: false}, (t) => {
+      if (sendResponse) {
+        sendResponse({ action: 'open' });
+      }
+      // review page erases query params, so send them in a message
+      chrome.tabs.sendMessage(tabId, { rating });
+    });
+  };
+
+  var sendRating = function sendRating(rating) {
+    // review page erases query params, so send them in a message
+    chrome.tabs.sendMessage(tabId, { rating });
   };
 
   var loadRatings = function loadRatings() {
@@ -70,6 +87,7 @@ var kgr = (function() {
 
   return {
     openGoodreadsTab,
+    loadReviewTab,
     loadRatings,
   }
 })();

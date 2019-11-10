@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Read and rate",
+  "name": "Read rate done",
   "description": "Click stars on Kindle Cloud Reader to rate and set finished on Goodreads.",
-  "version": "1.0",
+  "version": "1.2",
   "background": {
     "scripts": ["lib/jquery-3.2.1.min.js", "background.js"],
     "persistent": false
@@ -13,7 +13,7 @@
       "js": ["lib/jquery-3.2.1.min.js", "lib/arrive.min.js", "kindle.js"]
     },
     {
-      "matches": ["https://www.goodreads.com/search?q=*"],
+      "matches": ["https://www.goodreads.com/search?q=*", "https://www.goodreads.com/review/new/*"],
       "js": ["goodreads.js"]
     }
   ],

@@ -1,42 +1,50 @@
 /*
-  run on Goodreads search tab opened by extension
-  - get rating from query param
-  - click read, click stars, click set finished to today
+  extension opens Goodreads search tab: https://www.goodreads.com/search?q=
+    - get Goodreads id of first result
+    - send message to extension with Goodreads id
+
+  extension opens Goodreads review page in the same tab: https://www.goodreads.com/review/edit/id
+    - Goodreads erases query params, so extension sends a message with the rating value
+    - on receiving a message with a rating, click stars for rating, set read date to today, and save
 */
 
-var kgr = (function() {
-  var waitForStars = function() {
-   return new Promise((resolve, reject) => {
-      var interval = setInterval(() => {
-        if (!document.querySelectorAll('form.reviewForm .stars .star').length) {
-          return;
-        }
-        clearInterval(interval);
-        resolve();
-      }, 200);
-    });
+const kgr = (function() {
+  const review = function(rating) {
+    console.log('set rating ', rating);
+    // set rating and read date from review page: https://www.goodreads.com/review/edit/id
+    // click stars (0-indexd)
+    document.querySelectorAll('form.reviewForm .stars .star')[rating-1].click();
+    // set read to today
+    document.querySelector('a.endedAtSetTodayLink').click();
+    // save
+    document.querySelector('input[value="Save"]').click();
   }
 
-  var rate = function(rating) {
-    // click read status dropdown
-    document.querySelector('button[value="read"]').click();
-    // click read
-    document.querySelector('li[data-shelf-name="read"]').click();
-    waitForStars().then(() => {
-      // click stars (0-indexd)
-      document.querySelectorAll('form.reviewForm .stars .star')[rating-1].click();
-      // set read to today
-      document.querySelector('.endedAtSetTodayLink').click();
-      // save
-      document.querySelector('input[value="Save"]').click();
+  const search = function(rating) {
+    // get GoodReads id from first result on search page
+    console.log('search with rating ', rating);
+    const href = document.querySelector('a.bookTitle').getAttribute('href');
+    const match = (new RegExp(/\/book\/show\/(\d+).*/)).exec(href);
+    if (!match) {
+      console.error(`href ${href} doesn't match /book/show/id`);
+      return;
+    }
+    // send message with review page URL
+    chrome.runtime.sendMessage({
+      rating,
+      url: `https://www.goodreads.com/review/edit/${match[1]}`,
     });
   }
-  return {
-    rate,
-  }
+  return { review, search };
 })();
 
-var match = location.href.match(/rating=(\d+)/);
-if (match) {
-  kgr.rate(match[1]);
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('content request message=', request);
+  if (request.rating) {
+    kgr.review(parseInt(request.rating));
+  }
+});
+
+if (location.href.match(/readratedone=true/) && location.href.match(/\/search\?/)) {
+  kgr.search(location.href.match(/rating=(\d+)/)[1]);
 }
