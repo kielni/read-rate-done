@@ -5,12 +5,12 @@
     - rate: open Goodreads tab with query parameters: search query and rating
     - library iframe ready: get url for My Books, then fetch ratings from first page
   from Goodreads
-    - rating complete: send message to Kindle Cloud Reader
+    - search page returns Goodreads book id: load review tab and rate
 */
-let tabId = null;
+const ratings = {};
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('onMessage request=', request, ' sender=', sender, 'tabId=', tabId);
+  console.log('onMessage request=', request, ' sender=', sender);
   // opened Kindle Cloud Reader
   if (sender.url.indexOf('read.amazon.com') >= 0 && request.opened) {
     chrome.pageAction.setIcon({ tabId: sender.tab.id, path: 'icon-gray-16.png' });
@@ -34,7 +34,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   // Goodreads search page returns Goodreads id
   if (sender.url.indexOf('www.goodreads.com') >= 0 && request.url) {
-    kgr.loadReviewTab(request.url, request.rating);
+    kgr.loadReviewTab(sender.tab.id, request.url, request.rating);
   }
   return true;
 });
@@ -53,23 +53,15 @@ var kgr = (function() {
       if (sendResponse) {
         sendResponse({ action: 'open' });
       }
-      tabId = t.id;
     });
   };
 
-  var loadReviewTab = function loadReviewTab(url, rating, sendResponse) {
+  var loadReviewTab = function loadReviewTab(tabId, url, rating, sendResponse) {
     return chrome.tabs.update(tabId, {url: url, active: false}, (t) => {
       if (sendResponse) {
         sendResponse({ action: 'open' });
       }
-      // review page erases query params, so send them in a message
-      chrome.tabs.sendMessage(tabId, { rating });
     });
-  };
-
-  var sendRating = function sendRating(rating) {
-    // review page erases query params, so send them in a message
-    chrome.tabs.sendMessage(tabId, { rating });
   };
 
   var loadRatings = function loadRatings() {

@@ -29,22 +29,26 @@ const kgr = (function() {
       console.error(`href ${href} doesn't match /book/show/id`);
       return;
     }
+    const bookId = match[1];
     // send message with review page URL
     chrome.runtime.sendMessage({
       rating,
-      url: `https://www.goodreads.com/review/edit/${match[1]}`,
+      id: bookId,
+      url: `https://www.goodreads.com/review/new/${bookId}?readratedone=true&rating=${rating}`,
     });
   }
   return { review, search };
 })();
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('content request message=', request);
-  if (request.rating) {
-    kgr.review(parseInt(request.rating));
-  }
-});
+const href = location.href;
+const ratingMatch = href.match(/rating=(\d+)/);
+const rating = ratingMatch ? ratingMatch[1] : null;
 
-if (location.href.match(/readratedone=true/) && location.href.match(/\/search\?/)) {
-  kgr.search(location.href.match(/rating=(\d+)/)[1]);
+if (href.match(/readratedone=true/)) {
+  if (href.match(/\/search\?/)) {
+    kgr.search(rating);
+  }
+  if (href.match(/\/review\//)) {
+    kgr.review(rating);
+  }
 }
