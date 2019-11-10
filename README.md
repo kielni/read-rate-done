@@ -24,9 +24,11 @@ This extension injects stars below the first 30 books in the Kindle Cloud Reader
 
 The background script passes messages between Kindle Cloud Reader and Goodreads tabs.
 
-Kindle Cloud Reader tab sends messages to the extension:
+The Kindle Cloud Reader tab sends messages to the extension:
   - library iframe ready: get url for My Books on Goodreads (it includes a user id), then fetch ratings from first page of My Books (30 books)
   - rate: open Goodreads tab with query parameters for search query and rating
+
+The Goodreads tab sends a message to the extension after a search. The message contains a Goodreads book id, review page URL, and rating. The background page opens the review page URL in the same Goodreads tab.
 
 ### kindle.js
 
@@ -36,10 +38,11 @@ Clicking a star sends a message to the extension with the book id and rating.
 
 ### goodreads.js
 
-The extension opens a tab on Goodreads with query and ratings parameters.  The content script looks for the rating param, and clicks through the steps to set the book read, rate it, set the read date to today, and save.
+The content script checks for a `readratedone=true` query param, and continues only if found.
 
+On the Goodreads search page (`/search?`), the content script extracts the Goodreads book id from the first search result, and sends a message to the extension with the Goodreads book id, review page URL, and rating.
 
-### goodreads.js
+On the Goodreads review page (`review/new/`), the content script sets the rating to the value in the URL, sets the read date to today, and saves.
 
 ### credits
 
