@@ -11,13 +11,16 @@
 const kgr = (function() {
   const review = function(rating) {
     console.log('set rating ', rating);
+    if (!rating) {
+      return;
+    }
     // set rating and read date from review page: https://www.goodreads.com/review/edit/id
     // click stars (0-indexd)
     document.querySelectorAll('form.reviewForm .stars .star')[rating-1].click();
     // set read to today
     document.querySelector('a.endedAtSetTodayLink').click();
     // save
-    document.querySelector('input[value="Save"]').click();
+    document.querySelector('input[value="Post"]').click();
   }
 
   const search = function(rating) {
@@ -30,6 +33,10 @@ const kgr = (function() {
       return;
     }
     const bookId = match[1];
+    // save book id and params in local storage; goodreads may rewrite the url from review/new to review/edit
+    // and drop the params
+    // https://www.goodreads.com/review/new/40665796?rating=4&readratedone=true
+    localStorage.setItem(bookId, rating);
     // send message with review page URL
     chrome.runtime.sendMessage({
       rating,
@@ -37,7 +44,42 @@ const kgr = (function() {
       url: `https://www.goodreads.com/review/new/${bookId}?readratedone=true&rating=${rating}`,
     });
   }
-  return { review, search };
+
+  const openMyBooks = function() {
+    // click My Books
+    let link = null;
+    document.querySelectorAll('a.siteHeader__topLevelLink').forEach((a) => {
+      if (a.text.trim() == 'My Books') {
+        link = a;
+        return;
+      }
+    });
+    if (link) {
+      link.href += '&readratedone=true'
+      link.click()
+    }
+  }
+
+  const getBookList = function() {
+    console.log('getBookList');
+    const ratings = [];
+
+    document.querySelectorAll('.rating .stars').forEach((rating) => {
+      // find tr
+      let parent = rating.parentElement;
+      while (parent && parent.tagName.toLowerCase() !== 'tr') {
+        parent = parent.parentElement;
+      }
+      ratings.push({
+        rating: rating.getAttribute('data-rating'),
+        title: parent.querySelector('.title a').getAttribute('title'),
+      });
+    });
+
+    chrome.runtime.sendMessage({ratings});
+  }
+
+  return { review, search, openMyBooks, getBookList };
 })();
 
 const href = location.href;
@@ -49,6 +91,24 @@ if (href.match(/readratedone=true/)) {
     kgr.search(rating);
   }
   if (href.match(/\/review\//)) {
-    kgr.review(rating);
+    if (href.match(/\/review\/list\//)) {
+      kgr.getBookList();
+    } else {
+      kgr.review(rating);
+    }
+  }
+  if (href.match(/dest=mybooks/)) {
+    kgr.openMyBooks();
+  }
+}
+// no readratedone param, but on a review page and a matching book in localStorage
+const match = href.match(/.*?\/review\/edit\/(\d+)/);
+
+if (match) {
+  const bookId = match[1]
+
+  if (localStorage.getItem(bookId)) {
+    localStorage.removeItem(bookId)
+    kgr.review(parseInt(localStorage.getItem(bookId)));
   }
 }

@@ -38,7 +38,8 @@ var kgr = (function() {
   }
 
   var fillRatings = function(response) {
-    if (!response.login || !response.ratings) { // not logged in
+    if (!response || !response.login || !response.ratings) { // not logged in
+      console.log('fillRatings: no data', response);
       return;
     }
     response.ratings.forEach((book) => {
