@@ -106,9 +106,10 @@ const match = href.match(/.*?\/review\/edit\/(\d+)/);
 
 if (match) {
   const bookId = match[1]
+  rating = localStorage.getItem(bookId);
 
-  if (localStorage.getItem(bookId)) {
+  if (rating != null) {
     localStorage.removeItem(bookId)
-    kgr.review(parseInt(localStorage.getItem(bookId)));
+    kgr.review(parseInt(rating));
   }
 }
